@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   title: "Car Share",
   description: "Shared family car booking calendar",
   icons: {
-    icon: "/favicon.ico?v=2",
+    icon: "/favicon.ico?v=3",
   },
 };
 
