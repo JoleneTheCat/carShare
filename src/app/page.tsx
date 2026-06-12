@@ -20,7 +20,7 @@ export default async function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <Header user={user} users={userProfiles} />
+      <Header user={user} />
       <AgendaView currentUser={user} users={userProfiles} />
     </div>
   );

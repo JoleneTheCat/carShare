@@ -8,10 +8,9 @@ import type { UserProfile } from "@/lib/types";
 
 interface HeaderProps {
   user: UserProfile;
-  users: UserProfile[];
 }
 
-export default function Header({ user, users }: HeaderProps) {
+export default function Header({ user }: HeaderProps) {
   const [showSettings, setShowSettings] = useState(false);
 
   return (
@@ -49,9 +48,7 @@ export default function Header({ user, users }: HeaderProps) {
         </form>
       </div>
 
-      {showSettings && (
-        <SettingsModal currentUser={user} users={users} onClose={() => setShowSettings(false)} />
-      )}
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
     </header>
   );
 }
