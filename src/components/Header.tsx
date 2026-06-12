@@ -16,7 +16,7 @@ export default function Header({ user }: HeaderProps) {
   return (
     <header className="sticky top-0 z-30 flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3">
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-white">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white border border-[#800020] text-[#800020]">
           <Car size={16} />
         </div>
         <span className="font-semibold text-zinc-900">Car Share</span>
