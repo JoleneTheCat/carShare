@@ -82,7 +82,7 @@ export async function changePasscode(formData: FormData): Promise<PasscodeResult
 
   if (error) {
     console.error("changePasscode RPC error:", error);
-    return { error: "Something went wrong. Please try again." };
+    return { error: error.message || "Something went wrong. Please try again." };
   }
 
   if (!data) {
