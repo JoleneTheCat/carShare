@@ -23,10 +23,8 @@ export async function saveBooking(formData: FormData): Promise<SaveBookingResult
   }
 
   const bookingId = (formData.get("bookingId") as string) || null;
-  const startDateStr = formData.get("startDate") as string;
-  const startTime = formData.get("startTime") as string;
-  const endDateStr = formData.get("endDate") as string;
-  const endTime = formData.get("endTime") as string;
+  const startStr = formData.get("start") as string;
+  const endStr = formData.get("end") as string;
   const confirmOverwrite = formData.get("confirmOverwrite") === "true";
   let forUserId = formData.get("forUserId") as string;
 
@@ -34,12 +32,14 @@ export async function saveBooking(formData: FormData): Promise<SaveBookingResult
     forUserId = sessionUser.id;
   }
 
-  if (!startDateStr || !startTime || !endDateStr || !endTime || !forUserId) {
+  if (!startStr || !endStr || !forUserId) {
     return { error: "Please fill in all fields." };
   }
 
-  const startDate = new Date(`${startDateStr}T${startTime}:00`);
-  const endDate = new Date(`${endDateStr}T${endTime}:00`);
+  // These are full ISO instants (already converted from the user's local
+  // picker selection on the client), so parsing here is timezone-independent.
+  const startDate = new Date(startStr);
+  const endDate = new Date(endStr);
 
   if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
     return { error: "Invalid date or time." };

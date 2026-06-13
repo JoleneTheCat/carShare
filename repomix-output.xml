@@ -1,10 +1,10 @@
-This file is a merged representation of the entire codebase, combined into a single document by Repomix.
+This file is a merged representation of a subset of the codebase, containing files not matching ignore patterns, combined into a single document by Repomix.
 
 <file_summary>
 This section contains a summary of this file.
 
 <purpose>
-This file contains a packed representation of the entire repository's contents.
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
 It is designed to be easily consumable by AI systems for analysis, code review,
 or other automated processes.
 </purpose>
@@ -32,6 +32,7 @@ The content is organized as follows:
 <notes>
 - Some files may have been excluded based on .gitignore rules and Repomix's configuration
 - Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Files matching these patterns are excluded: node_modules, dist, .next, .git
 - Files matching patterns in .gitignore are excluded
 - Files matching default ignore patterns are excluded
 - Files are sorted by Git change count (files with more changes are at the bottom)
@@ -47,6 +48,7 @@ eslint.config.mjs
 next.config.ts
 package.json
 postcss.config.mjs
+public/favicon.ico
 public/file.svg
 public/globe.svg
 public/next.svg
@@ -56,7 +58,6 @@ README.md
 src/app/actions/auth.ts
 src/app/actions/bookings.ts
 src/app/AgendaView.tsx
-src/app/favicon.ico
 src/app/globals.css
 src/app/layout.tsx
 src/app/login/LoginForm.tsx
@@ -65,6 +66,7 @@ src/app/page.tsx
 src/components/BookingModal.tsx
 src/components/DateStrip.tsx
 src/components/Header.tsx
+src/components/SettingsModal.tsx
 src/components/Timeline.tsx
 src/lib/session.ts
 src/lib/supabase/client.ts
@@ -73,6 +75,7 @@ src/lib/types.ts
 supabase/auth_function.sql
 supabase/booking_function.sql
 supabase/debug_login.sql
+supabase/passcode_functions.sql
 supabase/schema.sql
 tsconfig.json
 </directory_structure>
@@ -80,58 +83,77 @@ tsconfig.json
 <files>
 This section contains the contents of the repository's files.
 
-<file path="src/app/actions/auth.ts">
-"use server";
+<file path="AGENTS.md">
+<!-- BEGIN:nextjs-agent-rules -->
+# This is NOT the Next.js you know
 
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import { createServiceClient } from "@/lib/supabase/server";
-import { SESSION_COOKIE } from "@/lib/session";
-import type { UserProfile } from "@/lib/types";
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
+<!-- END:nextjs-agent-rules -->
+</file>
 
-const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+<file path="CLAUDE.md">
+@AGENTS.md
+</file>
 
-export async function login(formData: FormData) {
-  const name = formData.get("name");
-  const passcode = formData.get("passcode");
-  const rememberMe = formData.get("rememberMe") === "on";
+<file path="eslint.config.mjs">
+import { defineConfig, globalIgnores } from "eslint/config";
+import nextVitals from "eslint-config-next/core-web-vitals";
+import nextTs from "eslint-config-next/typescript";
 
-  if (typeof name !== "string" || typeof passcode !== "string" || !name || !passcode) {
-    return { error: "Please select your name and enter your passcode." };
-  }
+const eslintConfig = defineConfig([
+  ...nextVitals,
+  ...nextTs,
+  // Override default ignores of eslint-config-next.
+  globalIgnores([
+    // Default ignores of eslint-config-next:
+    ".next/**",
+    "out/**",
+    "build/**",
+    "next-env.d.ts",
+  ]),
+]);
 
-  const supabase = createServiceClient();
-  const { data, error } = await supabase.rpc("verify_login", {
-    p_name: name,
-    p_passcode: passcode,
-  });
+export default eslintConfig;
+</file>
 
-  if (error) {
-    return { error: "Something went wrong. Please try again." };
-  }
+<file path="next.config.ts">
+import type { NextConfig } from "next";
 
-  const user = (data as UserProfile[] | null)?.[0];
-  if (!user) {
-    return { error: "Incorrect name or passcode." };
-  }
+const nextConfig: NextConfig = {
+  /* config options here */
+};
 
-  const cookieStore = await cookies();
-  cookieStore.set(SESSION_COOKIE, JSON.stringify(user), {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    ...(rememberMe ? { maxAge: ONE_YEAR_SECONDS } : {}),
-  });
+export default nextConfig;
+</file>
 
-  redirect("/");
-}
+<file path="postcss.config.mjs">
+const config = {
+  plugins: {
+    "@tailwindcss/postcss": {},
+  },
+};
 
-export async function logout() {
-  const cookieStore = await cookies();
-  cookieStore.delete(SESSION_COOKIE);
-  redirect("/login");
-}
+export default config;
+</file>
+
+<file path="public/file.svg">
+<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
+</file>
+
+<file path="public/globe.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
+</file>
+
+<file path="public/next.svg">
+<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
+</file>
+
+<file path="public/vercel.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
+</file>
+
+<file path="public/window.svg">
+<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
 </file>
 
 <file path="src/app/actions/bookings.ts">
@@ -160,8 +182,9 @@ export async function saveBooking(formData: FormData): Promise<SaveBookingResult
   }
 
   const bookingId = (formData.get("bookingId") as string) || null;
-  const date = formData.get("date") as string;
+  const startDateStr = formData.get("startDate") as string;
   const startTime = formData.get("startTime") as string;
+  const endDateStr = formData.get("endDate") as string;
   const endTime = formData.get("endTime") as string;
   const confirmOverwrite = formData.get("confirmOverwrite") === "true";
   let forUserId = formData.get("forUserId") as string;
@@ -170,18 +193,19 @@ export async function saveBooking(formData: FormData): Promise<SaveBookingResult
     forUserId = sessionUser.id;
   }
 
-  if (!date || !startTime || !endTime || !forUserId) {
+  if (!startDateStr || !startTime || !endDateStr || !endTime || !forUserId) {
     return { error: "Please fill in all fields." };
   }
 
-  const startDate = new Date(`${date}T${startTime}:00`);
-  let endDate = new Date(`${date}T${endTime}:00`);
-  if (endDate.getTime() <= startDate.getTime()) {
-    endDate = new Date(endDate.getTime() + 24 * 60 * 60 * 1000);
-  }
+  const startDate = new Date(`${startDateStr}T${startTime}:00`);
+  const endDate = new Date(`${endDateStr}T${endTime}:00`);
 
   if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
     return { error: "Invalid date or time." };
+  }
+
+  if (endDate.getTime() <= startDate.getTime()) {
+    return { error: "End time must be after start time." };
   }
 
   if (startDate.getTime() < Date.now()) {
@@ -275,10 +299,10 @@ export async function deleteBooking(bookingId: string): Promise<SaveBookingResul
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { endOfDay, format, startOfDay, startOfMonth } from "date-fns";
+import { addDays, endOfDay, format, startOfDay, startOfMonth } from "date-fns";
 import { Plus } from "lucide-react";
 import { supabase } from "@/lib/supabase/client";
-import DateStrip from "@/components/DateStrip";
+import DateStrip, { DAYS_AFTER, DAYS_BEFORE } from "@/components/DateStrip";
 import Timeline from "@/components/Timeline";
 import BookingModal from "@/components/BookingModal";
 import type { Booking, BookingWithUser, UserProfile } from "@/lib/types";
@@ -314,6 +338,7 @@ export default function AgendaView({ currentUser, users }: AgendaViewProps) {
   const [selectedDate, setSelectedDate] = useState(() => startOfDay(new Date()));
   const [visibleMonth, setVisibleMonth] = useState(() => startOfMonth(new Date()));
   const [bookings, setBookings] = useState<BookingWithUser[]>([]);
+  const [dayIndicators, setDayIndicators] = useState<Map<string, string[]>>(new Map());
   const [modal, setModal] = useState<ModalState>(null);
 
   const usersById = useMemo(() => new Map(users.map((u) => [u.id, u])), [users]);
@@ -347,6 +372,44 @@ export default function AgendaView({ currentUser, users }: AgendaViewProps) {
     refreshBookings();
   }, [refreshBookings]);
 
+  const refreshDayIndicators = useCallback(() => {
+    const today = startOfDay(new Date());
+    const rangeStart = addDays(today, -DAYS_BEFORE);
+    const rangeEnd = addDays(today, DAYS_AFTER + 1);
+
+    supabase
+      .from("bookings")
+      .select("user_id, start_time, end_time")
+      .lt("start_time", rangeEnd.toISOString())
+      .gt("end_time", rangeStart.toISOString())
+      .then(({ data, error }) => {
+        if (error || !data) {
+          setDayIndicators(new Map());
+          return;
+        }
+
+        const map = new Map<string, string[]>();
+        for (let day = rangeStart; day < rangeEnd; day = addDays(day, 1)) {
+          const dayEnd = addDays(day, 1);
+          const colors: string[] = [];
+          for (const booking of data as Pick<Booking, "user_id" | "start_time" | "end_time">[]) {
+            const start = new Date(booking.start_time);
+            const end = new Date(booking.end_time);
+            if (start < dayEnd && end > day) {
+              const color = usersById.get(booking.user_id)?.color;
+              if (color && !colors.includes(color)) colors.push(color);
+            }
+          }
+          if (colors.length) map.set(format(day, "yyyy-MM-dd"), colors);
+        }
+        setDayIndicators(map);
+      });
+  }, [usersById]);
+
+  useEffect(() => {
+    refreshDayIndicators();
+  }, [refreshDayIndicators]);
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="border-b border-zinc-200 bg-white px-4 pt-3">
@@ -356,6 +419,7 @@ export default function AgendaView({ currentUser, users }: AgendaViewProps) {
         selectedDate={selectedDate}
         onSelectDate={setSelectedDate}
         onVisibleMonthChange={setVisibleMonth}
+        dayIndicators={dayIndicators}
       />
       <div className="relative flex-1 overflow-y-auto">
         <Timeline
@@ -382,7 +446,10 @@ export default function AgendaView({ currentUser, users }: AgendaViewProps) {
           booking={modal.mode === "edit" ? modal.booking : undefined}
           initialStart={modal.mode === "create" ? modal.initialStart : undefined}
           onClose={() => setModal(null)}
-          onSaved={refreshBookings}
+          onSaved={() => {
+            refreshBookings();
+            refreshDayIndicators();
+          }}
         />
       )}
     </div>
@@ -419,7 +486,7 @@ export default function LoginForm({ users }: LoginFormProps) {
     <div className="flex min-h-screen flex-col items-center justify-center bg-zinc-50 px-4">
       <div className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-sm ring-1 ring-zinc-200">
         <div className="mb-6 flex flex-col items-center gap-2 text-center">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-900 text-white">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-white border border-[#800020] text-[#800020]">
             <Car size={24} />
           </div>
           <h1 className="text-xl font-semibold text-zinc-900">Car Share</h1>
@@ -539,6 +606,19 @@ interface ConflictInfo {
   end: string;
 }
 
+function formatDuration(ms: number) {
+  const totalMinutes = Math.round(ms / 60_000);
+  const days = Math.floor(totalMinutes / (24 * 60));
+  const hours = Math.floor((totalMinutes % (24 * 60)) / 60);
+  const minutes = totalMinutes % 60;
+
+  const parts: string[] = [];
+  if (days) parts.push(`${days}d`);
+  if (hours) parts.push(`${hours}h`);
+  if (minutes) parts.push(`${minutes}m`);
+  return parts.join(" ") || "0m";
+}
+
 interface BookingModalProps {
   currentUser: UserProfile;
   users: UserProfile[];
@@ -564,8 +644,9 @@ export default function BookingModal({
     : new Date(startReference.getTime() + 60 * 60 * 1000);
 
   const [forUserId, setForUserId] = useState(booking?.user_id ?? currentUser.id);
-  const [date, setDate] = useState(() => format(startReference, "yyyy-MM-dd"));
+  const [startDate, setStartDate] = useState(() => format(startReference, "yyyy-MM-dd"));
   const [startTime, setStartTime] = useState(() => format(startReference, "HH:mm"));
+  const [endDate, setEndDate] = useState(() => format(endReference, "yyyy-MM-dd"));
   const [endTime, setEndTime] = useState(() => format(endReference, "HH:mm"));
 
   const [error, setError] = useState<string | null>(null);
@@ -574,7 +655,8 @@ export default function BookingModal({
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const endsNextDay = endTime <= startTime;
+  const durationMs =
+    new Date(`${endDate}T${endTime}:00`).getTime() - new Date(`${startDate}T${startTime}:00`).getTime();
 
   function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -583,8 +665,9 @@ export default function BookingModal({
     const formData = new FormData();
     if (booking) formData.set("bookingId", booking.id);
     formData.set("forUserId", forUserId);
-    formData.set("date", date);
+    formData.set("startDate", startDate);
     formData.set("startTime", startTime);
+    formData.set("endDate", endDate);
     formData.set("endTime", endTime);
     formData.set("confirmOverwrite", confirming ? "true" : "false");
 
@@ -700,25 +783,26 @@ export default function BookingModal({
               </div>
             )}
 
-            <div className="flex flex-col gap-1.5">
-              <label htmlFor="date" className="text-sm font-medium text-zinc-700">
-                Date
-              </label>
-              <input
-                id="date"
-                type="date"
-                value={date}
-                onChange={(e) => {
-                  setDate(e.target.value);
-                  setConflicts(null);
-                  setConfirming(false);
-                }}
-                required
-                className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-base text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-200"
-              />
-            </div>
-
             <div className="flex gap-3">
+              <div className="flex flex-1 flex-col gap-1.5">
+                <label htmlFor="startDate" className="text-sm font-medium text-zinc-700">
+                  Start date
+                </label>
+                <input
+                  id="startDate"
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setStartDate(value);
+                    if (endDate < value) setEndDate(value);
+                    setConflicts(null);
+                    setConfirming(false);
+                  }}
+                  required
+                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-base text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                />
+              </div>
               <div className="flex flex-1 flex-col gap-1.5">
                 <label htmlFor="startTime" className="text-sm font-medium text-zinc-700">
                   Start time
@@ -730,6 +814,27 @@ export default function BookingModal({
                   value={startTime}
                   onChange={(e) => {
                     setStartTime(e.target.value);
+                    setConflicts(null);
+                    setConfirming(false);
+                  }}
+                  required
+                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-base text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+                />
+              </div>
+            </div>
+
+            <div className="flex gap-3">
+              <div className="flex flex-1 flex-col gap-1.5">
+                <label htmlFor="endDate" className="text-sm font-medium text-zinc-700">
+                  End date
+                </label>
+                <input
+                  id="endDate"
+                  type="date"
+                  value={endDate}
+                  min={startDate}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
                     setConflicts(null);
                     setConfirming(false);
                   }}
@@ -757,8 +862,10 @@ export default function BookingModal({
               </div>
             </div>
 
-            {endsNextDay && (
-              <p className="text-xs text-zinc-500">Ends the next day.</p>
+            {durationMs > 0 ? (
+              <p className="text-xs text-zinc-500">Duration: {formatDuration(durationMs)}</p>
+            ) : (
+              <p className="text-xs text-red-600">End must be after start.</p>
             )}
 
             {error && (
@@ -800,7 +907,7 @@ export default function BookingModal({
               )}
               <button
                 type="submit"
-                disabled={isPending}
+                disabled={isPending || durationMs <= 0}
                 className="flex-1 rounded-lg bg-zinc-900 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-60"
               >
                 {isPending
@@ -824,16 +931,17 @@ export default function BookingModal({
 import { useEffect, useRef } from "react";
 import { addDays, format, isSameDay, startOfDay, startOfMonth } from "date-fns";
 
-const DAYS_BEFORE = 7;
-const DAYS_AFTER = 60;
+export const DAYS_BEFORE = 7;
+export const DAYS_AFTER = 60;
 
 interface DateStripProps {
   selectedDate: Date;
   onSelectDate: (date: Date) => void;
   onVisibleMonthChange?: (date: Date) => void;
+  dayIndicators?: Map<string, string[]>;
 }
 
-export default function DateStrip({ selectedDate, onSelectDate, onVisibleMonthChange }: DateStripProps) {
+export default function DateStrip({ selectedDate, onSelectDate, onVisibleMonthChange, dayIndicators }: DateStripProps) {
   const today = startOfDay(new Date());
   const days = Array.from(
     { length: DAYS_BEFORE + DAYS_AFTER + 1 },
@@ -905,6 +1013,7 @@ export default function DateStrip({ selectedDate, onSelectDate, onVisibleMonthCh
       {days.map((day, i) => {
         const isSelected = isSameDay(day, selectedDate);
         const isToday = isSameDay(day, today);
+        const colors = dayIndicators?.get(format(day, "yyyy-MM-dd"));
 
         return (
           <button
@@ -926,6 +1035,15 @@ export default function DateStrip({ selectedDate, onSelectDate, onVisibleMonthCh
               {format(day, "EEE")}
             </span>
             <span className="text-base font-semibold">{format(day, "d")}</span>
+            <div className="flex h-1.5 items-center gap-0.5">
+              {colors?.map((color, idx) => (
+                <span
+                  key={idx}
+                  className="h-1.5 w-1.5 rounded-full"
+                  style={{ backgroundColor: color }}
+                />
+              ))}
+            </div>
           </button>
         );
       })}
@@ -934,54 +1052,17 @@ export default function DateStrip({ selectedDate, onSelectDate, onVisibleMonthCh
 }
 </file>
 
-<file path="src/components/Header.tsx">
-import { Car, LogOut } from "lucide-react";
-import { logout } from "@/app/actions/auth";
-import type { UserProfile } from "@/lib/types";
-
-export default function Header({ user }: { user: UserProfile }) {
-  return (
-    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3">
-      <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-900 text-white">
-          <Car size={16} />
-        </div>
-        <span className="font-semibold text-zinc-900">Car Share</span>
-      </div>
-
-      <div className="flex items-center gap-3">
-        <span className="flex items-center gap-1.5 text-sm font-medium text-zinc-700">
-          <span
-            className="h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: user.color }}
-          />
-          {user.name}
-        </span>
-        <form action={logout}>
-          <button
-            type="submit"
-            aria-label="Sign out"
-            className="text-zinc-400 transition-colors hover:text-zinc-600"
-          >
-            <LogOut size={18} />
-          </button>
-        </form>
-      </div>
-    </header>
-  );
-}
-</file>
-
 <file path="src/components/Timeline.tsx">
 "use client";
 
-import { useEffect, useState, type MouseEvent } from "react";
+import { useSyncExternalStore, type MouseEvent } from "react";
 import { format, isSameDay, startOfDay } from "date-fns";
 import type { BookingWithUser } from "@/lib/types";
 
 const HOUR_HEIGHT = 64; // px per hour
 const LABEL_WIDTH = 56; // px
 const SNAP_MINUTES = 15;
+const CLOCK_INTERVAL_MS = 60_000;
 
 interface TimelineProps {
   date: Date;
@@ -996,18 +1077,31 @@ function minutesFromMidnight(iso: string, dayStart: Date, dayEnd: Date) {
   return (clamped - dayStart.getTime()) / 60000;
 }
 
-export default function Timeline({ date, bookings, onEmptySlotClick, onBookingClick }: TimelineProps) {
-  const [now, setNow] = useState(() => new Date());
+// Rounds to the current minute so repeated calls within the same render
+// return an identical snapshot (required by useSyncExternalStore).
+function getClockSnapshot() {
+  return Math.floor(Date.now() / CLOCK_INTERVAL_MS) * CLOCK_INTERVAL_MS;
+}
 
-  useEffect(() => {
-    const interval = setInterval(() => setNow(new Date()), 60_000);
-    return () => clearInterval(interval);
-  }, []);
+// No "current time" during SSR/initial hydration, so the red line is only
+// rendered once the client clock snapshot is available.
+function getServerClockSnapshot() {
+  return null;
+}
+
+function subscribeToClock(onChange: () => void) {
+  const interval = setInterval(onChange, CLOCK_INTERVAL_MS);
+  return () => clearInterval(interval);
+}
+
+export default function Timeline({ date, bookings, onEmptySlotClick, onBookingClick }: TimelineProps) {
+  const nowTimestamp = useSyncExternalStore(subscribeToClock, getClockSnapshot, getServerClockSnapshot);
+  const now = nowTimestamp !== null ? new Date(nowTimestamp) : null;
 
   const dayStart = startOfDay(date);
   const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
-  const isToday = isSameDay(date, now);
-  const nowOffsetMinutes = minutesFromMidnight(now.toISOString(), dayStart, dayEnd);
+  const isToday = now !== null && isSameDay(date, now);
+  const nowOffsetMinutes = now !== null ? minutesFromMidnight(now.toISOString(), dayStart, dayEnd) : 0;
 
   function handleBackgroundClick(e: MouseEvent<HTMLDivElement>) {
     if (!onEmptySlotClick) return;
@@ -1245,6 +1339,60 @@ from public.users
 where name = 'Anat';
 </file>
 
+<file path="supabase/passcode_functions.sql">
+-- ============================================================
+-- Passcode management RPCs
+-- Run this in the Supabase SQL Editor (after schema.sql + auth_function.sql)
+-- ============================================================
+
+-- Verifies a user's current passcode and, if it matches, replaces it with
+-- a new hashed passcode. Returns true on success, false if the current
+-- passcode didn't match.
+create or replace function public.change_passcode(p_user_id uuid, p_current_passcode text, p_new_passcode text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  matches boolean;
+begin
+  select (passcode_hash = crypt(p_current_passcode, passcode_hash)) into matches
+  from public.users
+  where id = p_user_id;
+
+  if not found or not matches then
+    return false;
+  end if;
+
+  update public.users
+  set passcode_hash = crypt(p_new_passcode, gen_salt('bf'))
+  where id = p_user_id;
+
+  return true;
+end;
+$$;
+
+revoke all on function public.change_passcode(uuid, text, text) from public;
+grant execute on function public.change_passcode(uuid, text, text) to service_role;
+
+-- Admin-only: force-resets a user's passcode without checking the old one.
+-- Role checking is done in the Next.js server action before this is called.
+create or replace function public.admin_set_passcode(p_user_id uuid, p_new_passcode text)
+returns void
+language sql
+security definer
+set search_path = public
+as $$
+  update public.users
+  set passcode_hash = crypt(p_new_passcode, gen_salt('bf'))
+  where id = p_user_id;
+$$;
+
+revoke all on function public.admin_set_passcode(uuid, text) from public;
+grant execute on function public.admin_set_passcode(uuid, text) to service_role;
+</file>
+
 <file path="supabase/schema.sql">
 -- ============================================================
 -- Car Share — Initial Schema
@@ -1339,6 +1487,43 @@ insert into public.users (name, role, color, passcode_hash) values
   ('Yarden', 'regular', '#F59E0B', crypt('4567', gen_salt('bf'))); -- amber
 </file>
 
+<file path="tsconfig.json">
+{
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": ["dom", "dom.iterable", "esnext"],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": ["./src/*"]
+    }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts",
+    "**/*.mts"
+  ],
+  "exclude": ["node_modules"]
+}
+</file>
+
 <file path=".gitignore">
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
@@ -1381,49 +1566,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
-</file>
 
-<file path="AGENTS.md">
-<!-- BEGIN:nextjs-agent-rules -->
-# This is NOT the Next.js you know
-
-This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` before writing any code. Heed deprecation notices.
-<!-- END:nextjs-agent-rules -->
-</file>
-
-<file path="CLAUDE.md">
-@AGENTS.md
-</file>
-
-<file path="eslint.config.mjs">
-import { defineConfig, globalIgnores } from "eslint/config";
-import nextVitals from "eslint-config-next/core-web-vitals";
-import nextTs from "eslint-config-next/typescript";
-
-const eslintConfig = defineConfig([
-  ...nextVitals,
-  ...nextTs,
-  // Override default ignores of eslint-config-next.
-  globalIgnores([
-    // Default ignores of eslint-config-next:
-    ".next/**",
-    "out/**",
-    "build/**",
-    "next-env.d.ts",
-  ]),
-]);
-
-export default eslintConfig;
-</file>
-
-<file path="next.config.ts">
-import type { NextConfig } from "next";
-
-const nextConfig: NextConfig = {
-  /* config options here */
-};
-
-export default nextConfig;
+.vercel
 </file>
 
 <file path="package.json">
@@ -1456,36 +1600,6 @@ export default nextConfig;
     "typescript": "^5"
   }
 }
-</file>
-
-<file path="postcss.config.mjs">
-const config = {
-  plugins: {
-    "@tailwindcss/postcss": {},
-  },
-};
-
-export default config;
-</file>
-
-<file path="public/file.svg">
-<svg fill="none" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg"><path d="M14.5 13.5V5.41a1 1 0 0 0-.3-.7L9.8.29A1 1 0 0 0 9.08 0H1.5v13.5A2.5 2.5 0 0 0 4 16h8a2.5 2.5 0 0 0 2.5-2.5m-1.5 0v-7H8v-5H3v12a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1M9.5 5V2.12L12.38 5zM5.13 5h-.62v1.25h2.12V5zm-.62 3h7.12v1.25H4.5zm.62 3h-.62v1.25h7.12V11z" clip-rule="evenodd" fill="#666" fill-rule="evenodd"/></svg>
-</file>
-
-<file path="public/globe.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><g clip-path="url(#a)"><path fill-rule="evenodd" clip-rule="evenodd" d="M10.27 14.1a6.5 6.5 0 0 0 3.67-3.45q-1.24.21-2.7.34-.31 1.83-.97 3.1M8 16A8 8 0 1 0 8 0a8 8 0 0 0 0 16m.48-1.52a7 7 0 0 1-.96 0H7.5a4 4 0 0 1-.84-1.32q-.38-.89-.63-2.08a40 40 0 0 0 3.92 0q-.25 1.2-.63 2.08a4 4 0 0 1-.84 1.31zm2.94-4.76q1.66-.15 2.95-.43a7 7 0 0 0 0-2.58q-1.3-.27-2.95-.43a18 18 0 0 1 0 3.44m-1.27-3.54a17 17 0 0 1 0 3.64 39 39 0 0 1-4.3 0 17 17 0 0 1 0-3.64 39 39 0 0 1 4.3 0m1.1-1.17q1.45.13 2.69.34a6.5 6.5 0 0 0-3.67-3.44q.65 1.26.98 3.1M8.48 1.5l.01.02q.41.37.84 1.31.38.89.63 2.08a40 40 0 0 0-3.92 0q.25-1.2.63-2.08a4 4 0 0 1 .85-1.32 7 7 0 0 1 .96 0m-2.75.4a6.5 6.5 0 0 0-3.67 3.44 29 29 0 0 1 2.7-.34q.31-1.83.97-3.1M4.58 6.28q-1.66.16-2.95.43a7 7 0 0 0 0 2.58q1.3.27 2.95.43a18 18 0 0 1 0-3.44m.17 4.71q-1.45-.12-2.69-.34a6.5 6.5 0 0 0 3.67 3.44q-.65-1.27-.98-3.1" fill="#666"/></g><defs><clipPath id="a"><path fill="#fff" d="M0 0h16v16H0z"/></clipPath></defs></svg>
-</file>
-
-<file path="public/next.svg">
-<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 394 80"><path fill="#000" d="M262 0h68.5v12.7h-27.2v66.6h-13.6V12.7H262V0ZM149 0v12.7H94v20.4h44.3v12.6H94v21h55v12.6H80.5V0h68.7zm34.3 0h-17.8l63.8 79.4h17.9l-32-39.7 32-39.6h-17.9l-23 28.6-23-28.6zm18.3 56.7-9-11-27.1 33.7h17.8l18.3-22.7z"/><path fill="#000" d="M81 79.3 17 0H0v79.3h13.6V17l50.2 62.3H81Zm252.6-.4c-1 0-1.8-.4-2.5-1s-1.1-1.6-1.1-2.6.3-1.8 1-2.5 1.6-1 2.6-1 1.8.3 2.5 1a3.4 3.4 0 0 1 .6 4.3 3.7 3.7 0 0 1-3 1.8zm23.2-33.5h6v23.3c0 2.1-.4 4-1.3 5.5a9.1 9.1 0 0 1-3.8 3.5c-1.6.8-3.5 1.3-5.7 1.3-2 0-3.7-.4-5.3-1s-2.8-1.8-3.7-3.2c-.9-1.3-1.4-3-1.4-5h6c.1.8.3 1.6.7 2.2s1 1.2 1.6 1.5c.7.4 1.5.5 2.4.5 1 0 1.8-.2 2.4-.6a4 4 0 0 0 1.6-1.8c.3-.8.5-1.8.5-3V45.5zm30.9 9.1a4.4 4.4 0 0 0-2-3.3 7.5 7.5 0 0 0-4.3-1.1c-1.3 0-2.4.2-3.3.5-.9.4-1.6 1-2 1.6a3.5 3.5 0 0 0-.3 4c.3.5.7.9 1.3 1.2l1.8 1 2 .5 3.2.8c1.3.3 2.5.7 3.7 1.2a13 13 0 0 1 3.2 1.8 8.1 8.1 0 0 1 3 6.5c0 2-.5 3.7-1.5 5.1a10 10 0 0 1-4.4 3.5c-1.8.8-4.1 1.2-6.8 1.2-2.6 0-4.9-.4-6.8-1.2-2-.8-3.4-2-4.5-3.5a10 10 0 0 1-1.7-5.6h6a5 5 0 0 0 3.5 4.6c1 .4 2.2.6 3.4.6 1.3 0 2.5-.2 3.5-.6 1-.4 1.8-1 2.4-1.7a4 4 0 0 0 .8-2.4c0-.9-.2-1.6-.7-2.2a11 11 0 0 0-2.1-1.4l-3.2-1-3.8-1c-2.8-.7-5-1.7-6.6-3.2a7.2 7.2 0 0 1-2.4-5.7 8 8 0 0 1 1.7-5 10 10 0 0 1 4.3-3.5c2-.8 4-1.2 6.4-1.2 2.3 0 4.4.4 6.2 1.2 1.8.8 3.2 2 4.3 3.4 1 1.4 1.5 3 1.5 5h-5.8z"/></svg>
-</file>
-
-<file path="public/vercel.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1155 1000"><path d="m577.3 0 577.4 1000H0z" fill="#fff"/></svg>
-</file>
-
-<file path="public/window.svg">
-<svg fill="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16"><path fill-rule="evenodd" clip-rule="evenodd" d="M1.5 2.5h13v10a1 1 0 0 1-1 1h-11a1 1 0 0 1-1-1zM0 1h16v11.5a2.5 2.5 0 0 1-2.5 2.5h-11A2.5 2.5 0 0 1 0 12.5zm3.75 4.5a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5M7 4.75a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0m1.75.75a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5" fill="#666"/></svg>
 </file>
 
 <file path="README.md">
@@ -1524,7 +1638,127 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 
 The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more   details.
+</file>
+
+<file path="src/app/actions/auth.ts">
+"use server";
+
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { createServiceClient } from "@/lib/supabase/server";
+import { getSessionUser, SESSION_COOKIE } from "@/lib/session";
+import type { UserProfile } from "@/lib/types";
+
+const ONE_YEAR_SECONDS = 60 * 60 * 24 * 365;
+const DEFAULT_PASSCODE = "1234";
+
+interface PasscodeResult {
+  error?: string;
+  success?: boolean;
+}
+
+export async function login(formData: FormData) {
+  const name = formData.get("name");
+  const passcode = formData.get("passcode");
+  const rememberMe = formData.get("rememberMe") === "on";
+
+  if (typeof name !== "string" || typeof passcode !== "string" || !name || !passcode) {
+    return { error: "Please select your name and enter your passcode." };
+  }
+
+  const supabase = createServiceClient();
+  const { data, error } = await supabase.rpc("verify_login", {
+    p_name: name,
+    p_passcode: passcode,
+  });
+
+  if (error) {
+    return { error: "Something went wrong. Please try again." };
+  }
+
+  const user = (data as UserProfile[] | null)?.[0];
+  if (!user) {
+    return { error: "Incorrect name or passcode." };
+  }
+
+  const cookieStore = await cookies();
+  cookieStore.set(SESSION_COOKIE, JSON.stringify(user), {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    ...(rememberMe ? { maxAge: ONE_YEAR_SECONDS } : {}),
+  });
+
+  redirect("/");
+}
+
+export async function logout() {
+  const cookieStore = await cookies();
+  cookieStore.delete(SESSION_COOKIE);
+  redirect("/login");
+}
+
+export async function changePasscode(formData: FormData): Promise<PasscodeResult> {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser) {
+    return { error: "You must be signed in." };
+  }
+
+  const currentPasscode = formData.get("currentPasscode");
+  const newPasscode = formData.get("newPasscode");
+
+  if (typeof currentPasscode !== "string" || typeof newPasscode !== "string" || !currentPasscode || !newPasscode) {
+    return { error: "Please fill in all fields." };
+  }
+
+  if (!/^\d{4}$/.test(newPasscode)) {
+    return { error: "New PIN must be exactly 4 digits." };
+  }
+
+  const supabase = createServiceClient();
+  const { data, error } = await supabase.rpc("change_passcode", {
+    p_user_id: sessionUser.id,
+    p_current_passcode: currentPasscode,
+    p_new_passcode: newPasscode,
+  });
+
+  if (error) {
+    console.error("changePasscode RPC error:", error);
+    return { error: error.message || "Something went wrong. Please try again." };
+  }
+
+  if (!data) {
+    return { error: "Current PIN is incorrect." };
+  }
+
+  return { success: true };
+}
+
+export async function adminResetPasscode(formData: FormData): Promise<PasscodeResult> {
+  const sessionUser = await getSessionUser();
+  if (!sessionUser || sessionUser.role !== "admin") {
+    return { error: "You must be an admin to do this." };
+  }
+
+  const userId = formData.get("userId");
+  if (typeof userId !== "string" || !userId) {
+    return { error: "Missing user." };
+  }
+
+  const supabase = createServiceClient();
+  const { error } = await supabase.rpc("admin_set_passcode", {
+    p_user_id: userId,
+    p_new_passcode: DEFAULT_PASSCODE,
+  });
+
+  if (error) {
+    return { error: "Could not reset PIN." };
+  }
+
+  return { success: true };
+}
 </file>
 
 <file path="src/app/globals.css">
@@ -1548,44 +1782,149 @@ body {
 }
 </file>
 
-<file path="src/app/layout.tsx">
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
-import "./globals.css";
+<file path="src/components/SettingsModal.tsx">
+"use client";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
+import { useState, useTransition, type FormEvent } from "react";
+import { X } from "lucide-react";
+import { changePasscode } from "@/app/actions/auth";
 
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
-});
+interface SettingsModalProps {
+  onClose: () => void;
+}
 
-export const metadata: Metadata = {
-  title: "Car Share",
-  description: "Shared family car booking calendar",
-};
-
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 1,
-};
-
-export default function RootLayout({
-  children,
-}: Readonly<{
-  children: React.ReactNode;
-}>) {
+export default function SettingsModal({ onClose }: SettingsModalProps) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 sm:items-center"
+      onClick={onClose}
     >
-      <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">{children}</body>
-    </html>
+      <div
+        className="w-full max-w-sm rounded-t-2xl bg-white p-5 shadow-lg sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold text-zinc-900">Settings</h2>
+          <button onClick={onClose} aria-label="Close" className="text-zinc-400 hover:text-zinc-600">
+            <X size={20} />
+          </button>
+        </div>
+
+        <ChangePinForm />
+      </div>
+    </div>
+  );
+}
+
+function ChangePinForm() {
+  const [currentPasscode, setCurrentPasscode] = useState("");
+  const [newPasscode, setNewPasscode] = useState("");
+  const [confirmPasscode, setConfirmPasscode] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  function handleSubmit(e: FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSuccess(false);
+
+    if (!/^\d{4}$/.test(newPasscode)) {
+      setError("New PIN must be exactly 4 digits.");
+      return;
+    }
+
+    if (newPasscode !== confirmPasscode) {
+      setError("New PINs don't match.");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.set("currentPasscode", currentPasscode);
+    formData.set("newPasscode", newPasscode);
+
+    startTransition(async () => {
+      const result = await changePasscode(formData);
+      if (result.error) {
+        setError(result.error);
+        return;
+      }
+      setSuccess(true);
+      setCurrentPasscode("");
+      setNewPasscode("");
+      setConfirmPasscode("");
+    });
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="currentPasscode" className="text-sm font-medium text-zinc-700">
+          Current PIN
+        </label>
+        <input
+          id="currentPasscode"
+          type="password"
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={4}
+          required
+          placeholder="••••"
+          value={currentPasscode}
+          onChange={(e) => setCurrentPasscode(e.target.value)}
+          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-base tracking-widest text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="newPasscode" className="text-sm font-medium text-zinc-700">
+          New PIN
+        </label>
+        <input
+          id="newPasscode"
+          type="password"
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={4}
+          required
+          placeholder="••••"
+          value={newPasscode}
+          onChange={(e) => setNewPasscode(e.target.value)}
+          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-base tracking-widest text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1.5">
+        <label htmlFor="confirmPasscode" className="text-sm font-medium text-zinc-700">
+          Confirm new PIN
+        </label>
+        <input
+          id="confirmPasscode"
+          type="password"
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={4}
+          required
+          placeholder="••••"
+          value={confirmPasscode}
+          onChange={(e) => setConfirmPasscode(e.target.value)}
+          className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2.5 text-base tracking-widest text-zinc-900 focus:border-zinc-500 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+        />
+      </div>
+
+      {error && <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{error}</p>}
+      {success && (
+        <p className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700">PIN updated successfully.</p>
+      )}
+
+      <button
+        type="submit"
+        disabled={isPending}
+        className="mt-1 w-full rounded-lg bg-zinc-900 px-4 py-2.5 text-base font-medium text-white transition-colors hover:bg-zinc-800 disabled:opacity-60"
+      >
+        {isPending ? "Saving..." : "Update PIN"}
+      </button>
+    </form>
   );
 }
 </file>
@@ -1609,49 +1948,116 @@ export default async function Home() {
     .select("*")
     .order("name");
 
+  const userProfiles = (users as UserProfile[]) ?? [];
+
   return (
     <div className="flex min-h-screen flex-col">
       <Header user={user} />
-      <AgendaView currentUser={user} users={(users as UserProfile[]) ?? []} />
+      <AgendaView currentUser={user} users={userProfiles} />
     </div>
   );
 }
 </file>
 
-<file path="tsconfig.json">
-{
-  "compilerOptions": {
-    "target": "ES2017",
-    "lib": ["dom", "dom.iterable", "esnext"],
-    "allowJs": true,
-    "skipLibCheck": true,
-    "strict": true,
-    "noEmit": true,
-    "esModuleInterop": true,
-    "module": "esnext",
-    "moduleResolution": "bundler",
-    "resolveJsonModule": true,
-    "isolatedModules": true,
-    "jsx": "react-jsx",
-    "incremental": true,
-    "plugins": [
-      {
-        "name": "next"
-      }
-    ],
-    "paths": {
-      "@/*": ["./src/*"]
-    }
+<file path="src/components/Header.tsx">
+"use client";
+
+import { useState } from "react";
+import { Car, LogOut, Settings } from "lucide-react";
+import { logout } from "@/app/actions/auth";
+import SettingsModal from "@/components/SettingsModal";
+import type { UserProfile } from "@/lib/types";
+
+interface HeaderProps {
+  user: UserProfile;
+}
+
+export default function Header({ user }: HeaderProps) {
+  const [showSettings, setShowSettings] = useState(false);
+
+  return (
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-zinc-200 bg-white px-4 py-3">
+      <div className="flex items-center gap-2">
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white border border-[#800020] text-[#800020]">
+          <Car size={16} />
+        </div>
+        <span className="font-semibold text-zinc-900">Car Share</span>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <span className="flex items-center gap-1.5 text-sm font-medium text-zinc-700">
+          <span
+            className="h-2.5 w-2.5 rounded-full"
+            style={{ backgroundColor: user.color }}
+          />
+          {user.name}
+        </span>
+        <button
+          onClick={() => setShowSettings(true)}
+          aria-label="Settings"
+          className="text-zinc-400 transition-colors hover:text-zinc-600"
+        >
+          <Settings size={18} />
+        </button>
+        <form action={logout}>
+          <button
+            type="submit"
+            aria-label="Sign out"
+            className="text-zinc-400 transition-colors hover:text-zinc-600"
+          >
+            <LogOut size={18} />
+          </button>
+        </form>
+      </div>
+
+      {showSettings && <SettingsModal onClose={() => setShowSettings(false)} />}
+    </header>
+  );
+}
+</file>
+
+<file path="src/app/layout.tsx">
+import type { Metadata } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
+import "./globals.css";
+
+const geistSans = Geist({
+  variable: "--font-geist-sans",
+  subsets: ["latin"],
+});
+
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
+  subsets: ["latin"],
+});
+
+export const metadata: Metadata = {
+  title: "Car Share",
+  description: "Shared family car booking calendar",
+  icons: {
+    icon: "/favicon.ico?v=3",
   },
-  "include": [
-    "next-env.d.ts",
-    "**/*.ts",
-    "**/*.tsx",
-    ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts",
-    "**/*.mts"
-  ],
-  "exclude": ["node_modules"]
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html
+      lang="en"
+      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+    >
+      <body className="min-h-full flex flex-col bg-zinc-50 text-zinc-900">{children}</body>
+    </html>
+  );
 }
 </file>
 

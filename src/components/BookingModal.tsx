@@ -68,13 +68,18 @@ export default function BookingModal({
     e.preventDefault();
     setError(null);
 
+    // Resolve the picker's local date/time fields to absolute instants here,
+    // in the browser's own timezone, before they cross the wire. The server
+    // must not re-parse "YYYY-MM-DDTHH:mm" itself - Date() would then parse
+    // it in the server's timezone, shifting the stored time.
+    const startInstant = new Date(`${startDate}T${startTime}:00`);
+    const endInstant = new Date(`${endDate}T${endTime}:00`);
+
     const formData = new FormData();
     if (booking) formData.set("bookingId", booking.id);
     formData.set("forUserId", forUserId);
-    formData.set("startDate", startDate);
-    formData.set("startTime", startTime);
-    formData.set("endDate", endDate);
-    formData.set("endTime", endTime);
+    formData.set("start", startInstant.toISOString());
+    formData.set("end", endInstant.toISOString());
     formData.set("confirmOverwrite", confirming ? "true" : "false");
 
     startTransition(async () => {
